@@ -45,6 +45,7 @@ for r := range c.Next() {
 The official guide [Contributing to Open Source on GitHub](https://guides.github.com/activities/contributing-to-open-source/#contributing) explains in detail how you can contribute to a project.
 
 A quick explination:
+
 1. Fork it
 2. Create your feature branch (`git checkout -b new-feature`)
 3. Commit your changes (`git commit -am 'Some cool reflection'`)
