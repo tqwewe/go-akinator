@@ -32,7 +32,7 @@ func (r *Response) AnswerProbablyNot() error {
 }
 
 func (r *Response) answer(a int) error {
-	resp, err := r.client.HTTPClient.Get("http://api-us4.akinator.com/ws/answer?" + url.Values{
+	resp, err := r.client.HTTPClient.Get(apiURL + "/ws/answer?" + url.Values{
 		"session":   {r.client.identification.session},
 		"signature": {r.client.identification.signature},
 		"step":      {strconv.Itoa(r.client.identification.step)},

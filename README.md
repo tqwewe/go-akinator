@@ -1,5 +1,5 @@
 # Go Akinator
-Play with the [Akinator](http://en.akinator.com) in your Golang program.
+Play with the [Akinator](https://en.akinator.com) in your Golang program.
 
 ### Installation
 ```bash

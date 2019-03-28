@@ -55,7 +55,7 @@ func (c *Client) getResponse(content []byte) (*Response, error) {
 			Answers []struct {
 				Answer string `json:"answer"`
 			} `json:"answers"`
-			Infogain       int    `json:"infogain"`
+			Infogain       string `json:"infogain"`
 			Progression    string `json:"progression"`
 			Question       string `json:"question"`
 			Questionid     string `json:"questionid"`
@@ -100,7 +100,7 @@ func (c *Client) getResponse(content []byte) (*Response, error) {
 	if r.isAbleToFind() {
 		r.stepOfLastProp = c.identification.step
 
-		resp, err := c.HTTPClient.Get("http://api-us4.akinator.com/ws/list?" + url.Values{
+		resp, err := c.HTTPClient.Get(apiURL + "/ws/list?" + url.Values{
 			"session":        {c.identification.session},
 			"signature":      {c.identification.signature},
 			"step":           {strconv.Itoa(c.identification.step)},
