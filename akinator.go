@@ -7,6 +7,7 @@ import (
 	"net/http/cookiejar"
 	"net/url"
 	"regexp"
+	"strings"
 )
 
 // Used to check again a Response's Status.
@@ -128,7 +129,7 @@ func getAPIUrl(content []byte) (string, error) {
 		return "", errors.New("failed to find api url")
 	}
 
-	return string(matches[1]), nil
+	return strings.Replace(string(matches[1]), "\\", "", -1), nil
 }
 
 var uidExtSessionExp = regexp.MustCompile(`uid_ext_session\s*=\s*\'(.*)\'`)
