@@ -2,6 +2,7 @@ package akinator
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/cookiejar"
@@ -129,7 +130,13 @@ func getAPIUrl(content []byte) (string, error) {
 		return "", errors.New("failed to find api url")
 	}
 
-	return strings.Replace(string(matches[1]), "\\", "", -1), nil
+	unescapedURL := strings.Replace(string(matches[1]), "\\", "", -1)
+	apiURL, err := url.Parse(unescapedURL)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%s://%s", apiURL.Scheme, apiURL.Host), nil
 }
 
 var uidExtSessionExp = regexp.MustCompile(`uid_ext_session\s*=\s*\'(.*)\'`)
