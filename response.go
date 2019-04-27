@@ -100,7 +100,7 @@ func (c *Client) getResponse(content []byte) (*Response, error) {
 	if r.isAbleToFind() {
 		r.stepOfLastProp = c.identification.step
 
-		resp, err := c.HTTPClient.Get(apiURL + "/ws/list?" + url.Values{
+		resp, err := c.HTTPClient.Get(c.apiURL + "/ws/list?" + url.Values{
 			"session":        {c.identification.session},
 			"signature":      {c.identification.signature},
 			"step":           {strconv.Itoa(c.identification.step)},

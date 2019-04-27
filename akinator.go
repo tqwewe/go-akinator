@@ -18,11 +18,11 @@ const (
 
 // Domain info
 const domainURL = "http://en.akinator.com"
-const apiURL = "https://srv13.akinator.com:9196"
 
 // Client is used for each session with the Akinator.
 type Client struct {
 	HTTPClient     *http.Client
+	apiURL         string
 	responses      chan *Response
 	identification struct {
 		step      int
@@ -45,15 +45,8 @@ func NewClient() (*Client, error) {
 	c.HTTPClient = httpClient
 	c.responses = make(chan *Response, 1)
 
-	// Get PHP session cookie
-	resp, err := c.HTTPClient.Head(domainURL)
-	if err != nil {
-		return &c, err
-	}
-	resp.Body.Close()
-
-	// Get uid_ext_session
-	resp, err = c.HTTPClient.Get(domainURL + "/game")
+	// Get PHP session cookie and apiURL
+	resp, err := c.HTTPClient.Get(domainURL)
 	if err != nil {
 		return &c, err
 	}
@@ -62,21 +55,38 @@ func NewClient() (*Client, error) {
 	if err != nil {
 		return &c, err
 	}
-
 	resp.Body.Close()
 
-	uidExtSession, err := c.getUidExtSession(body)
+	c.apiURL, err = getAPIUrl(body)
 	if err != nil {
 		return &c, err
 	}
 
-	frontAddr, err := c.getFrontAddr(body)
+	// Get uid_ext_session
+	resp, err = c.HTTPClient.Get(domainURL + "/game")
+	if err != nil {
+		return &c, err
+	}
+
+	body, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return &c, err
+	}
+
+	resp.Body.Close()
+
+	uidExtSession, err := getUIDExtSession(body)
+	if err != nil {
+		return &c, err
+	}
+
+	frontAddr, err := getFrontAddr(body)
 	if err != nil {
 		return &c, err
 	}
 
 	// Begin session
-	resp, err = c.HTTPClient.Get(apiURL + "/ws/new_session?" + url.Values{
+	resp, err = c.HTTPClient.Get(c.apiURL + "/ws/new_session?" + url.Values{
 		"partner":         {"1"},
 		"player":          {"website-desktop"},
 		"uid_ext_session": {uidExtSession},
@@ -110,9 +120,20 @@ func (c *Client) Next() <-chan *Response {
 	return c.responses
 }
 
+var apuURLExp = regexp.MustCompile(`"urlWs":"(.*)",`)
+
+func getAPIUrl(content []byte) (string, error) {
+	matches := apuURLExp.FindSubmatch(content)
+	if len(matches) < 2 || len(matches[1]) == 0 {
+		return "", errors.New("failed to find api url")
+	}
+
+	return string(matches[1]), nil
+}
+
 var uidExtSessionExp = regexp.MustCompile(`uid_ext_session\s*=\s*\'(.*)\'`)
 
-func (c *Client) getUidExtSession(content []byte) (string, error) {
+func getUIDExtSession(content []byte) (string, error) {
 	matches := uidExtSessionExp.FindSubmatch(content)
 	if len(matches) < 2 || len(matches[1]) == 0 {
 		return "", errors.New("failed to find uid ext session")
@@ -123,7 +144,7 @@ func (c *Client) getUidExtSession(content []byte) (string, error) {
 
 var getFrontAddrExp = regexp.MustCompile(`frontaddr\s*=\s*\'(.*)\'`)
 
-func (c *Client) getFrontAddr(content []byte) (string, error) {
+func getFrontAddr(content []byte) (string, error) {
 	matches := getFrontAddrExp.FindSubmatch(content)
 	if len(matches) < 2 || len(matches[1]) == 0 {
 		return "", errors.New("failed to find front addr")
